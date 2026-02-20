@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicketRescue - Resell Urgent Tickets</title>
+    <style>
+        :root {
+            --primary: #007BFF;
+            --primary-hover: #0056b3;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333;
+            --error: #dc3545;
+            --success: #28a745;
+            --warning-bg: #fff3cd;
+            --warning-text: #856404;
+            --warning-border: #ffeeba;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .disclaimer {
+            background-color: var(--warning-bg);
+            color: var(--warning-text);
+            border: 1px solid var(--warning-border);
+            padding: 1rem;
+            margin: 2rem auto 0 auto;
+            max-width: 1160px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        main {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .section-container {
+            flex: 1;
+            min-width: 300px;
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            border-bottom: 2px solid var(--bg);
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        #error-msg {
+            color: var(--error);
+            font-weight: bold;
+            margin-top: 1rem;
+            display: none;
+            background: #f8d7da;
+            padding: 0.8rem;
+            border-radius: 4px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .ticket-card {
+            border: 1px solid #ddd;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            background-color: #fafafa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ticket-info h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--primary);
+        }
+
+        .ticket-info p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .buy-btn {
+            background-color: var(--success);
+            width: auto;
+            padding: 0.5rem 1rem;
+        }
+
+        .buy-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>TicketRescue</h1>
+        <p>Don't lose your money. Sell your non-refundable tickets safely.</p>
+    </header>
+
+    <div class="disclaimer">
+        ⚠️ <strong>Strict Policy:</strong> This platform is designed strictly for people who urgently need to offload tickets they can no longer use, to help others in need. <strong>Do not use this site for black market purposes.</strong> All tickets must be sold at a discount (strictly less than the original price).
+    </div>
+
+    <main>
+        <section class="section-container">
+            <h2>List Your Ticket</h2>
+            <form id="sellTicketForm">
+                <div class="form-group">
+                    <label for="ticketType">Ticket Type</label>
+                    <select id="ticketType" required>
+                        <option value="Train">Train</option>
+                        <option value="Bus">Bus</option>
+                        <option value="Flight">Flight</option>
+                        <option value="Concert">Concert</option>
+                        <option value="Movie">Movie</option>
+                        <option value="Sports Event">Sports Event</option>
+                        <option value="Other Event">Other Event</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="details">Route / Event Name (e.g., Coldplay Concert or Mumbai to Delhi)</label>
+                    <input type="text" id="details" required placeholder="Enter event name or travel route">
+                </div>
+                <div class="form-group">
+                    <label for="date">Date & Time of Travel/Event</label>
+                    <input type="datetime-local" id="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="reference">PNR / Booking Reference / Ticket ID</label>
+                    <input type="text" id="reference" required placeholder="For verification purposes">
+                </div>
+                <div class="form-group">
+                    <label for="originalPrice">Original Ticket Price (₹)</label>
+                    <input type="number" id="originalPrice" required min="1">
+                </div>
+                <div class="form-group">
+                    <label for="sellingPrice">Your Discounted Selling Price (₹)</label>
+                    <input type="number" id="sellingPrice" required min="1">
+                </div>
+                
+                <div id="error-msg">🚫 Anti-Scalping Alert: You must sell the ticket for strictly LESS than the original price. No profits allowed.</div>
+                
+                <button type="submit">List Ticket Safely</button>
+            </form>
+        </section>
+
+        <section class="section-container">
+            <h2>Urgent Tickets Available</h2>
+            <div id="ticket-board">
+                <div class="ticket-card">
+                    <div class="ticket-info">
+                        <h4>Concert: A.R. Rahman Live in Mumbai</h4>
+                        <p><strong>Date:</strong> 15 Mar 2026, 7:00 PM</p>
+                        <p><strong>Original Price:</strong> ₹5000 | <strong>Selling For:</strong> ₹3500</p>
+                    </div>
+                    <button class="buy-btn" onclick="alert('Proceeding to secure checkout...')">Buy Now</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.getElementById('sellTicketForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent page refresh
+
+            // Get form values
+            const type = document.getElementById('ticketType').value;
+            const details = document.getElementById('details').value;
+            const dateInput = document.getElementById('date').value;
+            const originalPrice = parseFloat(document.getElementById('originalPrice').value);
+            const sellingPrice = parseFloat(document.getElementById('sellingPrice').value);
+            const errorMsg = document.getElementById('error-msg');
+
+            // Format date
+            const dateObj = new Date(dateInput);
+            const formattedDate = dateObj.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+
+            // STRICT ANTI-BLACK MARKET LOGIC
+            // Selling price MUST be less than the original price. It cannot be equal or greater.
+            if (sellingPrice >= originalPrice) {
+                errorMsg.style.display = 'block';
+                return; // Stop the code from adding the ticket
+            } else {
+                errorMsg.style.display = 'none';
+            }
+
+            // Create new ticket card HTML
+            const ticketBoard = document.getElementById('ticket-board');
+            const newTicket = document.createElement('div');
+            newTicket.className = 'ticket-card';
+            
+            newTicket.innerHTML = `
+                <div class="ticket-info">
+                    <h4>${type}: ${details}</h4>
+                    <p><strong>Date:</strong> ${formattedDate}</p>
+                    <p><strong>Original Price:</strong> ₹${originalPrice} | <strong>Selling For:</strong> ₹${sellingPrice}</p>
+                </div>
+                <button class="buy-btn" onclick="alert('Proceeding to secure checkout...')">Buy Now</button>
+            `;
+
+            // Add the new ticket to the board at the top
+            ticketBoard.prepend(newTicket);
+
+            // Reset the form
+            document.getElementById('sellTicketForm').reset();
+            alert("Ticket successfully listed for verification!");
+        });
+    </script>
+</body>
+</html>
