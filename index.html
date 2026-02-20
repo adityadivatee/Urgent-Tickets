@@ -124,6 +124,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: opacity 0.3s;
         }
 
         .ticket-info h4 {
@@ -145,6 +146,56 @@
         .buy-btn:hover {
             background-color: #218838;
         }
+
+        /* Modal (Popup) Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0,0,0,0.6); 
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            color: black;
+        }
+
+        #checkout-summary {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+        }
+
+        .pay-btn {
+            background-color: var(--success);
+            margin-top: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -155,7 +206,7 @@
     </header>
 
     <div class="disclaimer">
-        ⚠️ <strong>Strict Policy:</strong> This platform is designed strictly for people who urgently need to offload tickets they can no longer use, to help others in need. <strong>Do not use this site for black market purposes.</strong> All tickets must be sold at a discount (strictly less than the original price).
+        ⚠️ <strong>Strict Policy:</strong> This platform is strictly for people who urgently need to offload tickets they can no longer use. <strong>Do not use this site for black market purposes.</strong> All tickets must be sold at a discount (strictly less than the original price).
     </div>
 
     <main>
@@ -183,7 +234,7 @@
                     <input type="datetime-local" id="date" required>
                 </div>
                 <div class="form-group">
-                    <label for="reference">PNR / Booking Reference / Ticket ID</label>
+                    <label for="reference">PNR / Booking Reference</label>
                     <input type="text" id="reference" required placeholder="For verification purposes">
                 </div>
                 <div class="form-group">
@@ -204,23 +255,51 @@
         <section class="section-container">
             <h2>Urgent Tickets Available</h2>
             <div id="ticket-board">
-                <div class="ticket-card">
+                <div class="ticket-card" id="ticket-001">
                     <div class="ticket-info">
                         <h4>Concert: A.R. Rahman Live in Mumbai</h4>
                         <p><strong>Date:</strong> 15 Mar 2026, 7:00 PM</p>
                         <p><strong>Original Price:</strong> ₹5000 | <strong>Selling For:</strong> ₹3500</p>
                     </div>
-                    <button class="buy-btn" onclick="alert('Proceeding to secure checkout...')">Buy Now</button>
+                    <button class="buy-btn" onclick="openCheckout('Concert: A.R. Rahman Live in Mumbai', 3500, 'ticket-001')">Buy Now</button>
                 </div>
             </div>
         </section>
     </main>
 
-    <script>
-        document.getElementById('sellTicketForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent page refresh
+    <div id="checkoutModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeCheckout()">&times;</span>
+            <h2>Secure Checkout</h2>
+            
+            <div id="checkout-summary">
+                <p><strong>Buying:</strong> <span id="checkout-itemName"></span></p>
+                <p><strong>Amount to Pay:</strong> ₹<span id="checkout-itemPrice"></span></p>
+            </div>
 
-            // Get form values
+            <form id="paymentForm">
+                <div class="form-group">
+                    <label for="buyerName">Full Name (must match government ID)</label>
+                    <input type="text" id="buyerName" required placeholder="e.g., Rahul Sharma">
+                </div>
+                <div class="form-group">
+                    <label for="buyerEmail">Email Address (to receive ticket)</label>
+                    <input type="email" id="buyerEmail" required placeholder="name@example.com">
+                </div>
+                <p style="font-size: 0.8rem; color: #666;">Funds will be held in Escrow until you successfully attend the event/journey. Seller is not paid until you verify.</p>
+                
+                <button type="submit" class="pay-btn">Pay ₹<span id="btn-price"></span> Securely</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. SELLING TICKET LOGIC ---
+        let ticketCounter = 1; // Used to give each ticket a unique ID
+
+        document.getElementById('sellTicketForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
             const type = document.getElementById('ticketType').value;
             const details = document.getElementById('details').value;
             const dateInput = document.getElementById('date').value;
@@ -228,40 +307,88 @@
             const sellingPrice = parseFloat(document.getElementById('sellingPrice').value);
             const errorMsg = document.getElementById('error-msg');
 
-            // Format date
             const dateObj = new Date(dateInput);
             const formattedDate = dateObj.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
 
-            // STRICT ANTI-BLACK MARKET LOGIC
-            // Selling price MUST be less than the original price. It cannot be equal or greater.
+            // Anti-Scalping Logic
             if (sellingPrice >= originalPrice) {
                 errorMsg.style.display = 'block';
-                return; // Stop the code from adding the ticket
+                return;
             } else {
                 errorMsg.style.display = 'none';
             }
 
-            // Create new ticket card HTML
+            // Create a unique ID for the new ticket
+            ticketCounter++;
+            const ticketId = 'ticket-' + ticketCounter;
+            const itemTitle = `${type}: ${details}`;
+
+            // Create new ticket card
             const ticketBoard = document.getElementById('ticket-board');
             const newTicket = document.createElement('div');
             newTicket.className = 'ticket-card';
+            newTicket.id = ticketId;
             
             newTicket.innerHTML = `
                 <div class="ticket-info">
-                    <h4>${type}: ${details}</h4>
+                    <h4>${itemTitle}</h4>
                     <p><strong>Date:</strong> ${formattedDate}</p>
                     <p><strong>Original Price:</strong> ₹${originalPrice} | <strong>Selling For:</strong> ₹${sellingPrice}</p>
                 </div>
-                <button class="buy-btn" onclick="alert('Proceeding to secure checkout...')">Buy Now</button>
+                <button class="buy-btn" onclick="openCheckout('${itemTitle}', ${sellingPrice}, '${ticketId}')">Buy Now</button>
             `;
 
-            // Add the new ticket to the board at the top
             ticketBoard.prepend(newTicket);
-
-            // Reset the form
             document.getElementById('sellTicketForm').reset();
             alert("Ticket successfully listed for verification!");
         });
+
+
+        // --- 2. BUYING TICKET LOGIC (CHECKOUT MODAL) ---
+        const modal = document.getElementById('checkoutModal');
+        let currentTicketIdToRemove = ""; // Remembers which ticket to delete after payment
+
+        // Opens the checkout popup
+        window.openCheckout = function(itemName, itemPrice, ticketId) {
+            document.getElementById('checkout-itemName').innerText = itemName;
+            document.getElementById('checkout-itemPrice').innerText = itemPrice;
+            document.getElementById('btn-price').innerText = itemPrice;
+            
+            currentTicketIdToRemove = ticketId; // Save the ID to delete it later
+            modal.style.display = "flex"; // Show the modal
+        }
+
+        // Closes the checkout popup
+        window.closeCheckout = function() {
+            modal.style.display = "none";
+            document.getElementById('paymentForm').reset(); // Clear buyer details
+        }
+
+        // Handles the actual "Payment"
+        document.getElementById('paymentForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Stop page from refreshing
+
+            const buyerName = document.getElementById('buyerName').value;
+
+            // 1. Show success message
+            alert(`Payment successful! The ticket has been transferred to ${buyerName}. Check your email for the PNR details.`);
+
+            // 2. Remove the bought ticket from the board
+            const ticketElement = document.getElementById(currentTicketIdToRemove);
+            if(ticketElement) {
+                ticketElement.remove();
+            }
+
+            // 3. Close the modal
+            closeCheckout();
+        });
+
+        // Close modal if user clicks outside of the white box
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeCheckout();
+            }
+        }
     </script>
 </body>
 </html>
